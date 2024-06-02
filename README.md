@@ -28,15 +28,25 @@ A simple Python GUI application built using Tkinter for downloading both video a
    ```bash
    pip install pytube3
 
-## Usage
-1. Run the application:
+## Usage (as User)
+1. Simply download the .exe file
+   
+3. Enter the YouTube video URL in the provided input field.
+
+4. Select the desired video resolution from the available options.
+
+5. Click on the "Download video" button to download the video or "Download audio" button to download the audio.
+
+6. Choose the destination directory where you want to save the downloaded files.
+   
+## Usage (as Dev)
+
+1. Make sure you have Python installed on your system.
+
+2. Download the `main.py` script from this repository.
+
+3. Open any idle of your preference.
+
+4. Run the script by executing the following command:
    ```bash
    python main.py
-   
-2. Enter the YouTube video URL in the provided input field.
-
-3. Select the desired video resolution from the available options.
-
-4. Click on the "Download video" button to download the video or "Download audio" button to download the audio.
-
-5. Choose the destination directory where you want to save the downloaded files.
