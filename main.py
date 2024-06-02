@@ -20,9 +20,11 @@ def download_video():
     url = link.get()
     print("URL: " + url)
 
-    if not url:
-        messagebox.showerror("Error", "Insert a valid URL!")
+    url = link.get()
+    if not url or not (url.startswith("https://www.youtube.com/") or url.startswith("youtube.com")):
+        messagebox.showerror("Error", "Insert a valid YouTube URL!")
         return
+    
     print("URL STATUS: Ok")
     print("----------------------------------------------------------")
 
@@ -33,6 +35,7 @@ def download_video():
 
         if streams:
             print(f"Download started, selected resolution: {selected_res}.")
+            print("This task might require some time depending on lenght of video")
             video_file = streams.first().download(directory_path)
             sanitized_title = sanitize_filename(yt.title)
             new_video_title = f"VIDEO_{sanitized_title}_{selected_res}.mp4"
@@ -49,6 +52,7 @@ def download_video():
             streams = yt.streams.filter(res=res)
             if streams:
                 print(f"Download started, best resolution found: {res}.")
+                print("This task might require some time depending on lenght of video")
                 video_file = streams.first().download(directory_path)
                 sanitized_title = sanitize_filename(yt.title)
                 new_video_title = f"VIDEO_{sanitized_title}_{res}.mp4"
@@ -76,9 +80,11 @@ def download_audio():
     url = link.get()
     print("URL: " + url)
 
-    if not url:
-        messagebox.showerror("Error", "Insert a valid URL!")
+    url = link.get()
+    if not url or not (url.startswith("https://www.youtube.com/") or url.startswith("youtube.com")):
+        messagebox.showerror("Error", "Insert a valid YouTube URL!")
         return
+
     print("URL STATUS: Ok")
     print("----------------------------------------------------------")
 
@@ -93,7 +99,7 @@ def download_audio():
             new_audio_path = os.path.join(directory_path, audio_title)
             os.rename(audio_file, new_audio_path)
             print("----------------------------------------------------------")
-            print("Done!")
+            print("Download completed!")
         else:
             messagebox.showerror("Error", "No audio available in MP3 format.")
     except Exception as e:
@@ -145,7 +151,6 @@ link = tk.Entry(window,
                 font=('Arial', 14))
 link.pack(fill='x', padx=20, pady=10)
 
-# Adding RadioButtons for resolution selection
 resolution = tk.StringVar(value="720p")
 
 res_label = tk.Label(window,
@@ -160,8 +165,13 @@ res_label.pack()
 res_options = ["2160p", "1440p", "1080p", "720p"]
 for res in res_options:
     tk.Radiobutton(window, text=res, variable=resolution, value=res,
-                   bg=bg_color, fg=fg_color, selectcolor="#6f6874",
-                   font=('Arial', 12)).pack()
+                   bg=bg_color, fg=fg_color, selectcolor=bg_color, activebackground=bg_color, activeforeground=fg_color,
+                   font=('Arial', 12, 'bold')).pack()
+
+info_label = tk.Label(text="WARNING: Video up to 720p does not include audio, you must download it separately!",
+                      bg=bg_color, fg=fg_color,
+                      font=('Arial', 10, 'bold'))
+info_label.pack(pady=10)
 
 download_video_button = tk.Button(window,
                                   text="Download video",
