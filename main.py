@@ -118,7 +118,7 @@ def download():
     download_audio()
 
 
-bg_color = "#3d3940"
+bg_color = "#00103C"
 fg_color = "white"
 
 window = tk.Tk()
@@ -145,7 +145,8 @@ entry_text.pack(fill='x')
 
 link = tk.Entry(window,
                 cursor='hand2',
-                bg="#6f6874",
+                bg="#09235E",
+                fg=fg_color,
                 highlightthickness=0,
                 bd=0,
                 font=('Arial', 14))
@@ -175,26 +176,26 @@ info_label.pack(pady=10)
 
 download_video_button = tk.Button(window,
                                   text="Download video",
-                                  bg=bg_color,
+                                  bg='#FF4D00',
                                   fg=fg_color,
-                                  activebackground=bg_color,
+                                  activebackground='#FF4D00',
                                   activeforeground=fg_color,
                                   highlightthickness=5,
                                   bd=0,
                                   font=("Arial", 14, 'bold'),
                                   command=download_video)
-download_video_button.pack(fill='x', pady=20)
+download_video_button.pack(padx=50, pady=20)
 
 download_audio_button = tk.Button(window,
                                   text="Download audio",
-                                  bg=bg_color,
+                                  bg='#14452F',
                                   fg=fg_color,
-                                  activebackground=bg_color,
+                                  activebackground='#14452F',
                                   activeforeground=fg_color,
                                   highlightthickness=5,
                                   bd=0,
                                   font=("Arial", 14, 'bold'),
                                   command=download_audio)
-download_audio_button.pack(fill='x', pady=20)
+download_audio_button.pack(padx=50 ,pady=10)
 
 window.mainloop()
