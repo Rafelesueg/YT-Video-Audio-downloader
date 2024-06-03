@@ -47,7 +47,7 @@ def download_video():
             return
 
         print(f"No video available in the selected resolution ({selected_res}). Downloading the best quality video available.")
-        resolutions = ["2160p", "1440p", "1080p", "720p"]
+        resolutions = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "144p"]
         for res in resolutions:
             streams = yt.streams.filter(res=res)
             if streams:
