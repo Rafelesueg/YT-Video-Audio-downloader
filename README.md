@@ -9,8 +9,6 @@ A simple Python GUI application built using Tkinter for downloading both video a
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
