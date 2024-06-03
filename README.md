@@ -2,7 +2,7 @@
 
 A simple Python GUI application built using Tkinter for downloading both video and audio from YouTube. This application allows users to specify the desired video resolution and download either the video or audio file accordingly.
 
-![alt text](https://i.imgur.com/szgeVLw.png)
+![alt text](https://i.imgur.com/NRreAvs.png)
 
 ## Table of Contents
 
