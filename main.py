@@ -1,49 +1,28 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
-from pytube import YouTube
+from pytube import YouTube, Playlist
 import os
 import re
-
 
 def sanitize_filename(filename):
     return re.sub(r'[<>:"/\\|?*]', '', filename)
 
-
-def download_video():
-    directory_path = filedialog.askdirectory()
-
-    if not directory_path:
-        return
-    print("Directory saved, ready to download...")
-    print("----------------------------------------------------------")
-
-    url = link.get()
-    print("URL: " + url)
-
-    url = link.get()
-    if not url or not (url.startswith("https://www.youtube.com/") or url.startswith("youtube.com")):
-        messagebox.showerror("Error", "Insert a valid YouTube URL!")
-        return
-    
-    print("URL STATUS: Ok")
-    print("----------------------------------------------------------")
-
+def download_video(url, directory_path):
     try:
-        yt = YouTube(link.get())
+        yt = YouTube(url)
         selected_res = resolution.get()
         streams = yt.streams.filter(res=selected_res)
 
         if streams:
+            print(f"Video: {yt.title}")
             print(f"Download started, selected resolution: {selected_res}.")
-            print("This task might require some time depending on lenght of video")
             video_file = streams.first().download(directory_path)
             sanitized_title = sanitize_filename(yt.title)
             new_video_title = f"VIDEO_{sanitized_title}_{selected_res}.mp4"
             new_video_path = os.path.join(directory_path, new_video_title)
             os.rename(video_file, new_video_path)
             print(f"Download completed! {selected_res}")
-            print("----------------------------------------------------------")
-            messagebox.showinfo("Success", f"Video downloaded successfully in {selected_res}:\n{yt.title}")
+            #messagebox.showinfo("Success", f"Video downloaded successfully in {selected_res}:\n{yt.title}")
             return
 
         print(f"No video available in the selected resolution ({selected_res}). Downloading the best quality video available.")
@@ -51,72 +30,65 @@ def download_video():
         for res in resolutions:
             streams = yt.streams.filter(res=res)
             if streams:
+                print(f"Video: {yt.title}")
                 print(f"Download started, best resolution found: {res}.")
-                print("This task might require some time depending on lenght of video")
                 video_file = streams.first().download(directory_path)
                 sanitized_title = sanitize_filename(yt.title)
                 new_video_title = f"VIDEO_{sanitized_title}_{res}.mp4"
                 new_video_path = os.path.join(directory_path, new_video_title)
                 os.rename(video_file, new_video_path)
                 print(f"Download completed! {res}")
-                print("----------------------------------------------------------")
-                messagebox.showinfo("Success", f"Video downloaded successfully in {res}:\n{yt.title}")
+                #messagebox.showinfo("Success", f"Video downloaded successfully in {res}:\n{yt.title}")
                 return
 
         messagebox.showerror("Error", "No video streams available in resolution above or equal to 720p.")
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred during video download:\n{e}")
-    messagebox.showinfo("Success", "Video downloaded!")
 
+def download_audio(url, directory_path):
+    try:
+        yt = YouTube(url)
+        stream = yt.streams.filter(only_audio=True, file_extension='mp4').first()
+        if stream:
+            print(f"Download audio started: {yt.title}")
+            audio_file = stream.download(output_path=directory_path)
+            sanitized_title = sanitize_filename(yt.title)
+            audio_title = "AUDIO_" + sanitized_title + ".mp3"
+            new_audio_path = os.path.join(directory_path, audio_title)
+            os.rename(audio_file, new_audio_path)
+            print("Download completed!")
+            #messagebox.showinfo("Success", f"Audio downloaded successfully:\n{yt.title}")
+        else:
+            messagebox.showerror("Error", "No audio available in MP3 format.")
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred during audio download:\n{e}")
 
-def download_audio():
+def download_video_or_audio(is_audio=False):
     directory_path = filedialog.askdirectory()
 
     if not directory_path:
         return
     print("Directory saved, ready to download...")
-    print("----------------------------------------------------------")
-
-    url = link.get()
-    print("URL: " + url)
 
     url = link.get()
     if not url or not (url.startswith("https://www.youtube.com/") or url.startswith("youtube.com")):
         messagebox.showerror("Error", "Insert a valid YouTube URL!")
         return
 
-    print("URL STATUS: Ok")
-    print("----------------------------------------------------------")
-
-    try:
-        yt = YouTube(link.get())
-        stream = yt.streams.filter(only_audio=True, file_extension='mp4').first()
-        print("Download audio started")
-        if stream:
-            audio_file = stream.download(output_path=directory_path)
-            sanitized_title = sanitize_filename(yt.title)
-            audio_title = "AUDIO_" + sanitized_title + ".mp3"
-            new_audio_path = os.path.join(directory_path, audio_title)
-            os.rename(audio_file, new_audio_path)
-            print("----------------------------------------------------------")
-            print("Download completed!")
+    if 'playlist' in url:
+        print("Playlist detected.")
+        pl = Playlist(url)
+        for video_url in pl.video_urls:
+            if is_audio:
+                download_audio(video_url, directory_path)
+            else:
+                download_video(video_url, directory_path)
+    else:
+        print("Single video detected.")
+        if is_audio:
+            download_audio(url, directory_path)
         else:
-            messagebox.showerror("Error", "No audio available in MP3 format.")
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred during audio download:\n{e}")
-    messagebox.showinfo("Success", "Audio downloaded!")
-
-
-def download():
-    directory_path = filedialog.askdirectory()
-
-    if not directory_path:
-        return
-    print("Directory saved, ready to download...")
-    print("----------------------------------------------------------")
-    download_video()
-    download_audio()
-
+            download_video(url, directory_path)
 
 bg_color = "#00103C"
 fg_color = "white"
@@ -159,8 +131,7 @@ res_label = tk.Label(window,
                      bg=bg_color,
                      fg=fg_color,
                      activebackground=bg_color,
-                     font=('Arial', 14, 'bold'),
-                     )
+                     font=('Arial', 14, 'bold'))
 res_label.pack()
 
 res_options = ["2160p", "1440p", "1080p", "720p"]
@@ -183,7 +154,7 @@ download_video_button = tk.Button(window,
                                   highlightthickness=5,
                                   bd=0,
                                   font=("Arial", 14, 'bold'),
-                                  command=download_video)
+                                  command=lambda: download_video_or_audio(is_audio=False))
 download_video_button.pack(padx=50, pady=20)
 
 download_audio_button = tk.Button(window,
@@ -195,7 +166,7 @@ download_audio_button = tk.Button(window,
                                   highlightthickness=5,
                                   bd=0,
                                   font=("Arial", 14, 'bold'),
-                                  command=download_audio)
-download_audio_button.pack(padx=50 ,pady=10)
+                                  command=lambda: download_video_or_audio(is_audio=True))
+download_audio_button.pack(padx=50, pady=10)
 
 window.mainloop()
