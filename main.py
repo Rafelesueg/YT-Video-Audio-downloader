@@ -1,172 +1,113 @@
-import tkinter as tk
-from tkinter import messagebox, filedialog
-from pytube import YouTube, Playlist
+import yt_dlp
 import os
-import re
+import customtkinter as ctk
+from tkinter import filedialog, messagebox
 
-def sanitize_filename(filename):
-    return re.sub(r'[<>:"/\\|?*]', '', filename)
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("green")
 
-def download_video(url, directory_path):
-    try:
-        yt = YouTube(url)
-        selected_res = resolution.get()
-        streams = yt.streams.filter(res=selected_res)
+class YouTubeDownloader(ctk.CTk):
+    def __init__(self):
+        super().__init__()
 
-        if streams:
-            print(f"Video: {yt.title}")
-            print(f"Download started, selected resolution: {selected_res}.")
-            video_file = streams.first().download(directory_path)
-            sanitized_title = sanitize_filename(yt.title)
-            new_video_title = f"VIDEO_{sanitized_title}_{selected_res}.mp4"
-            new_video_path = os.path.join(directory_path, new_video_title)
-            os.rename(video_file, new_video_path)
-            print(f"Download completed! {selected_res}")
-            #messagebox.showinfo("Success", f"Video downloaded successfully in {selected_res}:\n{yt.title}")
+        window_width = 600
+        window_height = 320
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        x_position = int((screen_width - window_width) / 2)
+        y_position = int((screen_height - window_height) / 2)
+
+        self.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+        self.title("YouTube Downloader")
+        self.resizable(False, False)
+
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        self.sidebar = ctk.CTkFrame(self, width=150, corner_radius=0)
+        self.sidebar.grid(row=0, column=0, sticky="nsw")
+        self.sidebar.grid_rowconfigure(4, weight=1)
+
+        self.logo_label = ctk.CTkLabel(self.sidebar, text="Menu", font=("Arial", 24, "bold"))
+        self.logo_label.grid(row=0, column=0, pady=30, padx=20)
+
+        self.format_var = ctk.StringVar(value="video")
+        self.video_button = ctk.CTkButton(self.sidebar, text="Video", command=lambda: self.set_format("video"))
+        self.video_button.grid(row=1, column=0, pady=20, padx=20, sticky="ew")
+
+        self.audio_button = ctk.CTkButton(self.sidebar, text="Audio", command=lambda: self.set_format("audio"))
+        self.audio_button.grid(row=2, column=0, pady=20, padx=20, sticky="ew")
+
+        self.content = ctk.CTkFrame(self)
+        self.content.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+
+        self.url_label = ctk.CTkLabel(self.content, text="Enter video URL:", font=("Arial", 18))
+        self.url_label.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+
+        self.url_entry = ctk.CTkEntry(self.content, width=400, placeholder_text="Paste the URL here...", font=("Arial", 16))
+        self.url_entry.grid(row=1, column=0, padx=10, pady=5)
+
+        self.format_label = ctk.CTkLabel(self.content, text="Format:", font=("Arial", 16))
+        self.format_label.grid(row=2, column=0, padx=10, pady=5, sticky="w")
+
+        self.format_options = ctk.CTkComboBox(self.content, values=["mp4", "webm", "mkv"], state="readonly", font=("Arial", 16))
+        self.format_options.grid(row=3, column=0, padx=10, pady=5)
+        self.format_options.set("mp4")
+
+        self.download_button = ctk.CTkButton(self.content, text="Download", command=self.download, font=("Arial", 16))
+        self.download_button.grid(row=4, column=0, padx=10, pady=15)
+
+        self.status_label = ctk.CTkLabel(self.content, text="", font=("Arial", 16))
+        self.status_label.grid(row=5, column=0, padx=10, pady=5)
+
+    def set_format(self, format):
+        self.format_var.set(format)
+        if format == "video":
+            self.format_options.configure(values=["mp4", "webm", "mkv"])
+            self.format_options.set("mp4")
+        else:
+            self.format_options.configure(values=["mp3", "aac", "flac", "wav", "ogg"])
+            self.format_options.set("mp3")
+
+    def download(self):
+        url = self.url_entry.get().strip()
+        format = self.format_var.get()
+        extension = self.format_options.get()
+
+        if not url:
+            messagebox.showwarning("Error", "Please enter a valid URL!")
             return
 
-        print(f"No video available in the selected resolution ({selected_res}). Downloading the best quality video available.")
-        resolutions = ["2160p", "1440p", "1080p", "720p", "480p", "360p", "144p"]
-        for res in resolutions:
-            streams = yt.streams.filter(res=res)
-            if streams:
-                print(f"Video: {yt.title}")
-                print(f"Download started, best resolution found: {res}.")
-                video_file = streams.first().download(directory_path)
-                sanitized_title = sanitize_filename(yt.title)
-                new_video_title = f"VIDEO_{sanitized_title}_{res}.mp4"
-                new_video_path = os.path.join(directory_path, new_video_title)
-                os.rename(video_file, new_video_path)
-                print(f"Download completed! {res}")
-                #messagebox.showinfo("Success", f"Video downloaded successfully in {res}:\n{yt.title}")
-                return
+        folder = filedialog.askdirectory(title="Select Save Folder")
+        if not folder:
+            return
 
-        messagebox.showerror("Error", "No video streams available in resolution above or equal to 720p.")
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred during video download:\n{e}")
+        self.status_label.configure(text="Downloading...", text_color="yellow")
+        self.update_idletasks()
 
-def download_audio(url, directory_path):
-    try:
-        yt = YouTube(url)
-        stream = yt.streams.filter(only_audio=True, file_extension='mp4').first()
-        if stream:
-            print(f"Download audio started: {yt.title}")
-            audio_file = stream.download(output_path=directory_path)
-            sanitized_title = sanitize_filename(yt.title)
-            audio_title = "AUDIO_" + sanitized_title + ".mp3"
-            new_audio_path = os.path.join(directory_path, audio_title)
-            os.rename(audio_file, new_audio_path)
-            print("Download completed!")
-            #messagebox.showinfo("Success", f"Audio downloaded successfully:\n{yt.title}")
-        else:
-            messagebox.showerror("Error", "No audio available in MP3 format.")
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred during audio download:\n{e}")
+        options = {
+            'outtmpl': os.path.join(folder, f'[{format.upper()}] %(title)s.%(ext)s'),
+            'format': 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best',
+            'merge_output_format': 'mp4',
+            'keepvideo': False
+        }
 
-def download_video_or_audio(is_audio=False):
-    directory_path = filedialog.askdirectory()
+        if format == "audio":
+            options['postprocessors'] = [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': extension,
+                'preferredquality': '192',
+            }]
 
-    if not directory_path:
-        return
-    print("Directory saved, ready to download...")
+        try:
+            with yt_dlp.YoutubeDL(options) as ydl:
+                ydl.download([url])
+            self.status_label.configure(text="Download completed!", text_color="green")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred:\n{e}")
+            self.status_label.configure(text="Download error", text_color="red")
 
-    url = link.get()
-    if not url or not (url.startswith("https://www.youtube.com/") or url.startswith("youtube.com")):
-        messagebox.showerror("Error", "Insert a valid YouTube URL!")
-        return
-
-    if 'playlist' in url:
-        print("Playlist detected.")
-        pl = Playlist(url)
-        for video_url in pl.video_urls:
-            if is_audio:
-                download_audio(video_url, directory_path)
-            else:
-                download_video(video_url, directory_path)
-    else:
-        print("Single video detected.")
-        if is_audio:
-            download_audio(url, directory_path)
-        else:
-            download_video(url, directory_path)
-
-bg_color = "#00103C"
-fg_color = "white"
-
-window = tk.Tk()
-window.title("Video&Audio Downloader")
-window.geometry('640x480')
-window.config(bg=bg_color)
-
-print("YouTube video&audio downloader by Rafelesueg\nGithub:https://github.com/Rafelesueg\n\n")
-print("Debug console:")
-
-label = tk.Label(window,
-                 text="YOUTUBE VIDEO&AUDIO DOWNLOADER",
-                 bg=bg_color,
-                 fg=fg_color,
-                 font=("Arial", 20, 'bold'))
-label.pack(fill='x', pady=10)
-
-entry_text = tk.Label(window,
-                      text="Insert link",
-                      bg=bg_color,
-                      fg=fg_color,
-                      font=('Arial', 16, 'bold'))
-entry_text.pack(fill='x')
-
-link = tk.Entry(window,
-                cursor='hand2',
-                bg="#09235E",
-                fg=fg_color,
-                highlightthickness=0,
-                bd=0,
-                font=('Arial', 14))
-link.pack(fill='x', padx=20, pady=10)
-
-resolution = tk.StringVar(value="720p")
-
-res_label = tk.Label(window,
-                     text="Select resolution",
-                     bg=bg_color,
-                     fg=fg_color,
-                     activebackground=bg_color,
-                     font=('Arial', 14, 'bold'))
-res_label.pack()
-
-res_options = ["2160p", "1440p", "1080p", "720p"]
-for res in res_options:
-    tk.Radiobutton(window, text=res, variable=resolution, value=res,
-                   bg=bg_color, fg=fg_color, selectcolor=bg_color, activebackground=bg_color, activeforeground=fg_color,
-                   font=('Arial', 12, 'bold')).pack()
-
-info_label = tk.Label(text="WARNING: Video up to 720p does not include audio, you must download it separately!",
-                      bg=bg_color, fg=fg_color,
-                      font=('Arial', 10, 'bold'))
-info_label.pack(pady=10)
-
-download_video_button = tk.Button(window,
-                                  text="Download video",
-                                  bg='#FF4D00',
-                                  fg=fg_color,
-                                  activebackground='#FF4D00',
-                                  activeforeground=fg_color,
-                                  highlightthickness=5,
-                                  bd=0,
-                                  font=("Arial", 14, 'bold'),
-                                  command=lambda: download_video_or_audio(is_audio=False))
-download_video_button.pack(padx=50, pady=20)
-
-download_audio_button = tk.Button(window,
-                                  text="Download audio",
-                                  bg='#14452F',
-                                  fg=fg_color,
-                                  activebackground='#14452F',
-                                  activeforeground=fg_color,
-                                  highlightthickness=5,
-                                  bd=0,
-                                  font=("Arial", 14, 'bold'),
-                                  command=lambda: download_video_or_audio(is_audio=True))
-download_audio_button.pack(padx=50, pady=10)
-
-window.mainloop()
+if __name__ == "__main__":
+    app = YouTubeDownloader()
+    app.mainloop()
