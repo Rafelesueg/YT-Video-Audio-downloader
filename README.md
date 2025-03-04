@@ -33,6 +33,8 @@ This project is a simple YouTube downloader GUI application built using **yt-dlp
     ```bash
     pip install yt-dlp customtkinter
     ```
+    [FFMPEG](https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-2025-03-03-git-d21ed2298e-full_build.7z)
+    EXTRACT from BIN folder the ffmpeg.exe and put inside the repository folder
 
 2. Save the provided Python script in a `.py` file and run it.
 
