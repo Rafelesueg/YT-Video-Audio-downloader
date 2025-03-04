@@ -6,9 +6,8 @@ from tkinter import filedialog, messagebox
 ffmpeg_path = os.path.join(os.path.dirname(__file__), "ffmpeg.exe")
 os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
 
-# Verifica se FFmpeg è accessibile
 if not os.path.exists(ffmpeg_path):
-    raise FileNotFoundError("FFmpeg non trovato! Assicurati che ffmpeg.exe sia nella cartella del programma.")
+    raise FileNotFoundError("FFmpeg not found!")
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
